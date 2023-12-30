@@ -1,0 +1,36 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{46503DF2-4033-41DD-9B61-0E7CDBAD41D3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{1A475E0D-930D-4ECA-AF8E-634C080A3F31}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MockSharp.Tests", "tests\MockSharp.Tests\MockSharp.Tests.csproj", "{FE86B06D-E25B-4299-982E-F0294EEBC874}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MockSharp.Core", "src\MockSharp.Core\MockSharp.Core.csproj", "{8D0DD9C4-4E06-4591-807B-2D04B2F147F9}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FE86B06D-E25B-4299-982E-F0294EEBC874}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FE86B06D-E25B-4299-982E-F0294EEBC874}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FE86B06D-E25B-4299-982E-F0294EEBC874}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FE86B06D-E25B-4299-982E-F0294EEBC874}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8D0DD9C4-4E06-4591-807B-2D04B2F147F9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8D0DD9C4-4E06-4591-807B-2D04B2F147F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8D0DD9C4-4E06-4591-807B-2D04B2F147F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8D0DD9C4-4E06-4591-807B-2D04B2F147F9}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{FE86B06D-E25B-4299-982E-F0294EEBC874} = {1A475E0D-930D-4ECA-AF8E-634C080A3F31}
+		{8D0DD9C4-4E06-4591-807B-2D04B2F147F9} = {46503DF2-4033-41DD-9B61-0E7CDBAD41D3}
+	EndGlobalSection
+EndGlobal
