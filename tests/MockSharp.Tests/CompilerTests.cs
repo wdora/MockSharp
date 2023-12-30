@@ -1,3 +1,4 @@
+using Microsoft.CodeAnalysis;
 using MockSharp.Core;
 using Shouldly;
 using Xunit.Abstractions;
@@ -44,5 +45,15 @@ class Program
         var dialogs = await new Compiler().CompileAsync(code, @"D:/App/Demo.dll", "8.0.0");
 
         dialogs.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public async Task Compile_Script()
+    {
+        var code = "Console.WriteLine(Environment.Version);";
+
+        var dialogs = await new Compiler().CompileAsync(code, @"D:/App/Demo.dll", "7.0.14");
+
+        dialogs.FirstOrDefault(d => d.Severity == DiagnosticSeverity.Error).ShouldBe(null);
     }
 }
