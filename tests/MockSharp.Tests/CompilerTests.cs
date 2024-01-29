@@ -42,7 +42,7 @@ class Program
 }
 """;
 
-        var dialogs = await new Compiler().CompileAsync(code, @"D:/App/Demo.dll", "8.0.0");
+        var dialogs = await new Compiler().CompileAsync(code, "6.0.26");
 
         dialogs.ShouldBeEmpty();
     }
@@ -52,8 +52,9 @@ class Program
     {
         var code = "Console.WriteLine(Environment.Version);";
 
-        var dialogs = await new Compiler().CompileAsync(code, @"D:/App/Demo.dll", "7.0.14");
+        var dialogs = await new Compiler().CompileAsync(code, "8.0.1");
 
         dialogs.FirstOrDefault(d => d.Severity == DiagnosticSeverity.Error).ShouldBe(null);
+
     }
 }

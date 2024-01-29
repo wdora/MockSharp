@@ -22,14 +22,34 @@ namespace MockSharp.Core
 
         static string GlobalUsing = string.Join("\r\n", NamespaceDefault.Select(x => $"global using {x};"));
 
-        public async Task<ImmutableArray<Diagnostic>> CompileAsync(string code, string assemblyPath, string targetFrameworkMoniker, CancellationToken cancellationToken = default)
+        static string assemblyAttr = """
+using System.Reflection;
+using System.Runtime.Versioning;
+
+[assembly: AssemblyTitle("MockApp")]
+[assembly: AssemblyVersion("1.0.0.0")]
+[assembly: TargetFramework(".NETCoreApp,Version=v6.0")]
+""";
+
+        static string runtimeConfig = """
+{
+  "runtimeOptions": {
+    "framework": {
+      "name": "Microsoft.NETCore.App",
+      "version": "6.0.0"
+    }
+  }
+}
+""";
+
+        public async Task<ImmutableArray<Diagnostic>> CompileAsync(string code, string targetFrameworkVersion, CancellationToken cancellationToken = default)
         {
             // OutputKind.ConsoleApplication, Platform.AnyCpu, OptimizationLevel.Release
             var compilationOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication,
                 mainTypeName: null,
                 scriptClassName: "Program",
                 usings: [],
-                optimizationLevel: OptimizationLevel.Release,
+                optimizationLevel: OptimizationLevel.Debug,
                 checkOverflow: false,
                 allowUnsafe: true,
                 platform: Platform.AnyCpu,
@@ -41,44 +61,54 @@ namespace MockSharp.Core
                 nullableContextOptions: NullableContextOptions.Enable
             );
 
-            var syntaxTree = SyntaxFactory.ParseSyntaxTree(code);
+            var moniker = targetFrameworkVersion.Substring(0, targetFrameworkVersion.LastIndexOf('.'));
 
-            var importsSyntax = SyntaxFactory.ParseSyntaxTree(GlobalUsing);
+            var syntaxTrees = GetSyntaxTrees(code, moniker);
+
+            var assemblyPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".dll");
+
+#if DEBUG
+            assemblyPath = "D:\\Code\\GitHub\\Demo\\Demo\\ConsoleApp6\\bin\\Debug\\net6.0\\a.dll";
+#endif
+            var pdbPath = Path.ChangeExtension(assemblyPath, "pdb");
 
             using var peStream = File.OpenWrite(assemblyPath);
 
-            using var pdbStream = File.OpenWrite(Path.ChangeExtension(assemblyPath, "pdb"));
-
-            await File.WriteAllTextAsync(Path.ChangeExtension(assemblyPath, "runtimeconfig.json"), """
-{
-  "runtimeOptions": {
-    "framework": {
-      "name": "Microsoft.NETCore.App",
-      "version": "{version}"
-    }
-  }
-}
-""".Replace("{version}", targetFrameworkMoniker));
+            using var pdbStream = File.OpenWrite(pdbPath);
 
             var assemblyName = Path.GetFileNameWithoutExtension(assemblyPath);
 
-            var references = ResolverAssemblies(targetFrameworkMoniker);
+            var references = ResolverAssemblies(targetFrameworkVersion, moniker);
 
-            return CSharpCompilation.Create(assemblyName, [syntaxTree, importsSyntax], references, compilationOptions)
+            var compliation = CSharpCompilation.Create(assemblyName, syntaxTrees, references, compilationOptions)
                 .Emit(peStream: peStream,
                     pdbStream: pdbStream,
                     options: new EmitOptions(debugInformationFormat: DebugInformationFormat.PortablePdb),
-                    cancellationToken: cancellationToken)
-                .Diagnostics;
+                    cancellationToken: cancellationToken);
+
+            var runtimeConfigPath = Path.ChangeExtension(assemblyPath, "runtimeconfig.json");
+
+            await File.WriteAllTextAsync(runtimeConfigPath, runtimeConfig.Replace("6.0.0", targetFrameworkVersion));
+
+            return compliation.Diagnostics;
         }
 
-        private IEnumerable<MetadataReference> ResolverAssemblies(string targetFrameworkMoniker)
+        private IEnumerable<SyntaxTree> GetSyntaxTrees(string code, string targetFrameworkMoniker)
         {
-            //var netcoreRoot = @"C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref";
+            yield return SyntaxFactory.ParseSyntaxTree(code);
 
-            var root = Path.Combine(Environment.GetEnvironmentVariable("ProgramW6432")!, "dotnet", "packs", "Microsoft.NETCore.App.Ref");
+            yield return SyntaxFactory.ParseSyntaxTree(GlobalUsing);
 
-            var targetRoot = Path.Combine(root, targetFrameworkMoniker, "ref", $"net{targetFrameworkMoniker.Substring(0, targetFrameworkMoniker.LastIndexOf('.'))}");
+            yield return SyntaxFactory.ParseSyntaxTree(assemblyAttr.Replace("6.0", targetFrameworkMoniker));
+        }
+
+        private IEnumerable<MetadataReference> ResolverAssemblies(string targetFramework, string moniker)
+        {
+            //var sdkPath = @"C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref";
+
+            var sdkPath = Path.Combine(Environment.GetEnvironmentVariable("ProgramW6432")!, "dotnet", "packs", "Microsoft.NETCore.App.Ref");
+
+            var targetRoot = Path.Combine(sdkPath, targetFramework, "ref", $"net{moniker}");
 
             return Directory
                 .GetFiles(targetRoot)
