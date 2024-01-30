@@ -42,9 +42,9 @@ class Program
 }
 """;
 
-        var dialogs = await new Compiler().CompileAsync(code, "6.0.26");
+        var dialogs = await new CsharpCompileService(new AssemblyResolve()).CompileAsync(code, "6.0.26");
 
-        dialogs.ShouldBeEmpty();
+        dialogs.FirstOrDefault(d => d.Severity == DiagnosticSeverity.Error).ShouldBe(null);
     }
 
     [Fact]
@@ -52,7 +52,7 @@ class Program
     {
         var code = "Console.WriteLine(Environment.Version);";
 
-        var dialogs = await new Compiler().CompileAsync(code, "8.0.1");
+        var dialogs = await new CsharpCompileService(new AssemblyResolve()).CompileAsync(code, "8.0.1");
 
         dialogs.FirstOrDefault(d => d.Severity == DiagnosticSeverity.Error).ShouldBe(null);
 

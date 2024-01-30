@@ -5,8 +5,15 @@ using System.Collections.Immutable;
 
 namespace MockSharp.Core
 {
-    public class Compiler
+    public class CsharpCompileService
     {
+        IAssemblyResolve assemblyResolve;
+
+        public CsharpCompileService(IAssemblyResolve assemblyResolve)
+        {
+            this.assemblyResolve = assemblyResolve;
+        }
+
         static string[] NamespaceDefault { get; } = {
             "System",
             "System.Threading",
@@ -45,21 +52,22 @@ using System.Runtime.Versioning;
         public async Task<ImmutableArray<Diagnostic>> CompileAsync(string code, string targetFrameworkVersion, CancellationToken cancellationToken = default)
         {
             // OutputKind.ConsoleApplication, Platform.AnyCpu, OptimizationLevel.Release
-            var compilationOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication,
-                mainTypeName: null,
-                scriptClassName: "Program",
-                usings: [],
-                optimizationLevel: OptimizationLevel.Debug,
-                checkOverflow: false,
-                allowUnsafe: true,
-                platform: Platform.AnyCpu,
-                warningLevel: 4,
-                deterministic: true,
-                xmlReferenceResolver: null,
-                sourceReferenceResolver: SourceFileResolver.Default,
-                assemblyIdentityComparer: AssemblyIdentityComparer.Default,
-                nullableContextOptions: NullableContextOptions.Enable
-            );
+            var compilationOptions = default(CSharpCompilationOptions);
+            //    new CSharpCompilationOptions(OutputKind.ConsoleApplication,
+            //    mainTypeName: null,
+            //    scriptClassName: "Program",
+            //    usings: [],
+            //    optimizationLevel: OptimizationLevel.Debug,
+            //    checkOverflow: false,
+            //    allowUnsafe: true,
+            //    platform: Platform.AnyCpu,
+            //    warningLevel: 4,
+            //    deterministic: true,
+            //    xmlReferenceResolver: null,
+            //    sourceReferenceResolver: SourceFileResolver.Default,
+            //    assemblyIdentityComparer: AssemblyIdentityComparer.Default,
+            //    nullableContextOptions: NullableContextOptions.Enable
+            //);
 
             var moniker = targetFrameworkVersion.Substring(0, targetFrameworkVersion.LastIndexOf('.'));
 
@@ -78,7 +86,10 @@ using System.Runtime.Versioning;
 
             var assemblyName = Path.GetFileNameWithoutExtension(assemblyPath);
 
-            var references = ResolverAssemblies(targetFrameworkVersion, moniker);
+            var references = assemblyResolve
+                .GetReferences(targetFrameworkVersion)
+                .Select(x => MetadataReference.CreateFromFile(x))
+                .ToImmutableList();
 
             var compliation = CSharpCompilation.Create(assemblyName, syntaxTrees, references, compilationOptions)
                 .Emit(peStream: peStream,
