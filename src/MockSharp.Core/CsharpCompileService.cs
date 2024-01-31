@@ -27,7 +27,7 @@ namespace MockSharp.Core
             "System.Reflection",
         };
 
-        static string GlobalUsing = string.Join("\r\n", NamespaceDefault.Select(x => $"global using {x};"));
+        public static string GlobalUsing = string.Join("\r\n", NamespaceDefault.Select(x => $"global using {x};"));
 
         static string assemblyAttr = """
 using System.Reflection;

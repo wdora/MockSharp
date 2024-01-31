@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Reflection;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace MockSharp.Core
 {
@@ -31,15 +32,15 @@ namespace MockSharp.Core
 
             string assemblyName = "assemblyName";
 
-            var proj = ProjectInfo.Create(ProjectId.CreateNewId(), VersionStamp.Default, projName, assemblyName, LanguageNames.CSharp, metadataReferences: referenceDlls);
+            var projInfo = ProjectInfo.Create(ProjectId.CreateNewId(), VersionStamp.Default, projName, assemblyName, LanguageNames.CSharp, metadataReferences: referenceDlls);
 
-            workspace.AddProject(proj);
+            var proj = workspace.AddProject(projInfo);
+
+            proj = proj.AddDocument("autoglobalusing", CsharpCompileService.GlobalUsing).Project;
 
             var text = SourceText.From(code);
 
-            string documentName = "documentName";
-
-            var document = workspace.AddDocument(proj.Id, documentName, text);
+            var document = proj.AddDocument("documentName", text);
 
             var completionService = CompletionService.GetService(document)!;
 
