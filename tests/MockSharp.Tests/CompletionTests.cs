@@ -5,30 +5,15 @@ namespace MockSharp.Tests
 {
     public class CompletionTests
     {
-        [Fact]
-        public async Task GetCompletionList()
+        [Theory]
+        [InlineData("Con", "Console")]
+        [InlineData("ne", "new")]
+        [InlineData("Console.WriteLine(Da", "DateTime")]
+        public async Task GetCompletionList_WithDefaultNs(string code, string want)
         {
-            var code = "System.Con";
-
             var position = code.Length;
 
             var list = await new CsharpCompletionService(new AssemblyResolve()).GetCompletionList(code, position);
-
-            var want = "Console";
-
-            list.ShouldContain(x => x.Text == want);
-        }
-
-        [Fact]
-        public async Task GetCompletionList_WithDefaultNs()
-        {
-            var code = "Con";
-
-            var position = code.Length;
-
-            var list = await new CsharpCompletionService(new AssemblyResolve()).GetCompletionList(code, position);
-
-            var want = "Console";
 
             list.ShouldContain(x => x.Text == want);
         }
